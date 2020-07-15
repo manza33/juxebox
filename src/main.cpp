@@ -2,18 +2,22 @@
 #include <ESP8266WiFi.h>
 #include "led.h"
 #include "music.h"
+using namespace std;
 
 #ifndef STASSID
 #define STASSID "FatPanda"
 #define STAPSK  "TitiBoubou"
+// #define STASSID "TiLiQUA"
+// #define STAPSK  "CestPlusFortQueToi"
 #endif
 
 const char* ssid     = STASSID;
 const char* password = STAPSK;
 
-int music = 0;
+String music;
+int num_music = 0;
 
-const char* host = "http://www.manza3d.com/juxebox_server";
+const char* host = "www.manza3d.com";
 const uint16_t port = 80;
 WiFiClient client;
 
@@ -88,18 +92,14 @@ void loop() {
             Serial.println("APPUI COURT!!!");
             bButtonPressedDown = false;
 
-            // if (!client.connect(host, port)) {
-            //     Serial.println("connection failed");
-            //     delay(5000);
-            //     return;
-            // }
-
             if (client.connect(host, 80)) {  //starts client connection, checks for connection
                 Serial.println("connected");
                 client.println("GET /juxebox_server/ HTTP/1.1"); //download text
                 client.println("Host: www.manza3d.com");
                 client.println("Connection: close");  //close 1.1 persistent connection 
                 client.println(); //end of get request
+            }else{
+                Serial.println("connection failed");
             }
 
             //GET /juxebox_server/ HTTP/1.1
@@ -109,7 +109,7 @@ void loop() {
             // Serial.println("sending data to server");
             // if (client.connected()) {
             //     client.println("hello from ESP8266");
-            // }
+            // 
 
               // wait for data to be available
             // unsigned long timeout = millis();
@@ -127,31 +127,28 @@ void loop() {
             // Read all the lines of the reply from server and print them to Serial
             Serial.println("receiving from remote server");
             // not testing 'client.connected()' since we do not need to send data here
-            while (client.available()) {
-                char music = static_cast<char>(client.read());
+            while (client.connected()) {
+                
+
+                music = client.readStringUntil('\r');
+                //Serial.println("Client reader");
+                //music = client.read();
                 Serial.print(music);
+
             }
 
-            // Close the connection
+            //Close the connection
             Serial.println();
             Serial.println("closing connection");
-            client.stop();
-
-            // if (client.available()) {
-            //     Serial.println("Client reader");
-
-            //     char c = client.read();
-            //     Serial.print("num_music : ");
-            //     Serial.println(c);
-            //     // Do something with data ...
-            // }   
+            client.stop();  
 
             //int music = rand() % 3 + 1;
 
             Serial.print("Random music : ");
             Serial.println(music);
+            num_music = atoi(music.c_str()); 
 
-            switch (music) {
+            switch (num_music) {
                 case 1:
                     Serial.println("Fonction 1");
                     PlayMario();
