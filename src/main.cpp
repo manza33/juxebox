@@ -11,19 +11,16 @@
 const char* ssid     = STASSID;
 const char* password = STAPSK;
 
-const char* host = "djxmmx.net";
-const uint16_t port = 17;
+int music = 0;
 
-
+const char* host = "http://www.manza3d.com/juxebox_server";
+const uint16_t port = 80;
+WiFiClient client;
 
 const int buttonInput = 5;  // D1
-//const int ledOutput = 16;   // D0
 bool bButtonPressedEvent = false;
 bool bButtonPressedDown = false;
 bool bButtonPressedUp = false;
-const int APPUI_MAX = 3; // Triple clic c'est déjà pas mal, non ?
-
-// Buzzer buzzer(14, 16);
 
 // Checks if motion was detected, sets LED HIGH and starts a timer
 ICACHE_RAM_ATTR void buttonPressed() {
@@ -37,9 +34,9 @@ ICACHE_RAM_ATTR void buttonPressed() {
 
 void setup() {
 
+
 // We start by connecting to a WiFi network
 
-    Serial.println();
     Serial.println();
     Serial.print("Connecting to ");
     Serial.println(ssid);
@@ -67,6 +64,7 @@ void setup() {
     // Mettre GPIO (General Purpose Input Output) en OUTPUT (Sortie) : LED
     Serial.begin(115200);
 
+    
 }
 
 unsigned long lastMsg = 0;
@@ -75,8 +73,7 @@ uint8_t appuiSuccessif = 0;
 unsigned long elapseTimeAfterManyClick = 0;
 
 void loop() {
-
-    
+  
     
     unsigned long now = millis();
     if (now - lastMsg > 1000) {
@@ -85,78 +82,93 @@ void loop() {
     }
 
     if (bButtonPressedEvent) {
+        
         if (bButtonPressedDown) {
-            Serial.println("BUTTON PRESSED!!!");
-            clignoter_led();
+            
+            Serial.println("APPUI COURT!!!");
             bButtonPressedDown = false;
-            startTime = millis();
 
-        }
+            // if (!client.connect(host, port)) {
+            //     Serial.println("connection failed");
+            //     delay(5000);
+            //     return;
+            // }
 
-        if (bButtonPressedUp) {
-            Serial.println("BUTTON RELEASED!!!");
-            bButtonPressedUp = false;
-            unsigned long elapseTime = millis() - startTime;
-            Serial.print("ELAPSE TIME : ");
-            Serial.print(elapseTime);
-            Serial.println("ms");
+            if (client.connect(host, 80)) {  //starts client connection, checks for connection
+                Serial.println("connected");
+                client.println("GET /juxebox_server/ HTTP/1.1"); //download text
+                client.println("Host: www.manza3d.com");
+                client.println("Connection: close");  //close 1.1 persistent connection 
+                client.println(); //end of get request
+            }
 
-            if (elapseTime > 2000) {
-                Serial.println("APPUI LONG!!!");
-                appuiSuccessif = 0;
-            } else {
-                Serial.println("APPUI COURT!!!");
+            //GET /juxebox_server/ HTTP/1.1
+            //Host: www.manza3d.com
 
-                WiFiClient client;
-                String url = "http://www.manza3d.com/juxebox_server/";
-                client.print(String("GET /") + url + " HTTP/1.1\r\n" +
-                    "Host: " + host + "\r\n" +
-                    "Connection: close\r\n" +
-                    "\r\n"
-                );
+            // This will send a string to the server
+            // Serial.println("sending data to server");
+            // if (client.connected()) {
+            //     client.println("hello from ESP8266");
+            // }
 
-                //if (client.available()) {
-                    char c = client.read();
-                    Serial.print("num_music : ");
-                    Serial.println(c);
-                    // Do something with data ...
-                //}   
+              // wait for data to be available
+            // unsigned long timeout = millis();
+            // while (client.available() == 0) {
+            //     //Serial.println("Timeout loop");
 
-                if (elapseTime < 100) {
+            //     if (millis() - timeout > 5000) {
+            //     Serial.println(">>> Client Timeout !");
+            //     client.stop();
+            //     delay(60000);
+            //     return;
+            //     }
+            // }
 
-                    // Clic ultra court
-                    if (appuiSuccessif != APPUI_MAX) {
-                        appuiSuccessif++;
-                        elapseTimeAfterManyClick = millis();
-                    }
-                }
+            // Read all the lines of the reply from server and print them to Serial
+            Serial.println("receiving from remote server");
+            // not testing 'client.connected()' since we do not need to send data here
+            while (client.available()) {
+                char music = static_cast<char>(client.read());
+                Serial.print(music);
+            }
+
+            // Close the connection
+            Serial.println();
+            Serial.println("closing connection");
+            client.stop();
+
+            // if (client.available()) {
+            //     Serial.println("Client reader");
+
+            //     char c = client.read();
+            //     Serial.print("num_music : ");
+            //     Serial.println(c);
+            //     // Do something with data ...
+            // }   
+
+            //int music = rand() % 3 + 1;
+
+            Serial.print("Random music : ");
+            Serial.println(music);
+
+            switch (music) {
+                case 1:
+                    Serial.println("Fonction 1");
+                    PlayMario();
+                    break;
+                case 2:
+                    Serial.println("Fonction 2");
+                    PlayStarwars();
+                    break;
+                case 3:
+                    Serial.println("Fonction 3");
+                    break;
+                default:
+                    break;
+                
             }
         }
-    }
-
-    if (appuiSuccessif > 0 && millis() - elapseTimeAfterManyClick > 300) {
-        Serial.print("YOU DID A ");
-        Serial.print(appuiSuccessif);
-        Serial.println("-CLICK");
-
-        switch (appuiSuccessif) {
-            case 1:
-                Serial.println("Fonction 1");
-                PlayMario();
-                break;
-            case 2:
-                Serial.println("Fonction 2");
-                PlayStarwars();
-                break;
-            case 3:
-                Serial.println("Fonction 3");
-                break;
-            default:
-                break;
-        }
-
-        appuiSuccessif = 0;
-
+     
     }
 }
 
