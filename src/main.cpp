@@ -4,7 +4,7 @@
 
 #include "led.h"
 #include "music.h"
-using namespace std;
+//using namespace std;
 
 #ifndef STASSID
 #define STASSID "FatPanda"
@@ -22,39 +22,14 @@ const uint16_t port = 80;
 WiFiClient client;
 DynamicJsonDocument doc(1024);
 
-
 const int buttonInput = 5;  // D1
 bool bButtonPressedEvent = false;
 bool bButtonPressedDown = false;
 bool bButtonPressedUp = false;
 bool countButtonPressed = false;
-//String music_json;
-//int num_music = 0;
+
 int i = 0;
-//String name = "";
-
-// ################## Musique reine des neiges  ################## 
-
-//durée en milliseconde pour chaque note (dans l'ordre)
-int PrincesseDesNeigesRytm[] = {
-    250, 250, 1500, 250, 250, 750,
-    250, 250, 750, 250, 750,
-    250, 750,
-    250, 250, 1500, 250, 250, 250, 250, 750,
-    250, 250, 750, 750, 500, 500, 750, 0};
-
-//Note à jouer (dans l'ordre)
-int PrincesseDesNeigesNote[] = {
-    NOTE_A4, NOTE_B4, NOTE_C5, NOTE_G4, NOTE_G4, NOTE_D5,
-    NOTE_A4, NOTE_A4, NOTE_A4, NOTE_A4, NOTE_A4,
-    NOTE_B4, NOTE_C5,
-    NOTE_A4, NOTE_B4, NOTE_C5, NOTE_G4, NOTE_G4, NOTE_E5, NOTE_E5, NOTE_D5,
-    NOTE_C5, NOTE_D5, NOTE_E5, NOTE_E5, NOTE_F5, NOTE_E5, NOTE_C5, 0};
-
 int MusiquePin = 14;
-
-// ################################################################# 
-
 
 // Checks if motion was detected, sets LED HIGH and starts a timer
 ICACHE_RAM_ATTR void buttonPressed() {
@@ -96,15 +71,10 @@ void setup() {
     attachInterrupt(digitalPinToInterrupt(buttonInput), buttonPressed, CHANGE);
 
     // Mettre GPIO (General Purpose Input Output) en OUTPUT (Sortie) : LED
-    Serial.begin(115200);
-
-    
+    Serial.begin(115200);    
 }
 
 unsigned long lastMsg = 0;
-unsigned long startTime = 0;
-uint8_t appuiSuccessif = 0;
-unsigned long elapseTimeAfterManyClick = 0;
 
 void loop() {  
     
@@ -173,60 +143,15 @@ void loop() {
                 return;
             }
 
+            i = 0;
         }
 
         bButtonPressedEvent = false;     
     }
 
-    // switch (num_music)
-    // {
-    //     case 1:
-    //         Serial.println("Mario");
-    //         name = "Mario";
-    //         //PlayMario();
-    //         num_music = 0;
-
-    //         break;
-    //     case 2:
-    //         Serial.println("Star Wars");
-    //         name = "Star Wars";
-    //         //PlayStarwars();
-    //         num_music = 0;
-
-
-    //         break;
-    //     case 3:
-    //         Serial.println("Reine des neiges");
-    //         name = "Reine des neiges";
-
-    //     // Lecture du tableau de note ... lorsque nous lisons un 0  c'est que c'est la fin
-    //         if (PrincesseDesNeigesNote[i] != 0)
-    //         {
-    //             //On joue la note
-    //             tone(MusiquePin, PrincesseDesNeigesNote[i], PrincesseDesNeigesRytm[i]);
-    //             //On attend X millisecondes (durée de la note) avant de passer à la suivante
-    //             delay(PrincesseDesNeigesRytm[i]);
-    //             //On arrête la lecture de la note
-    //             noTone(MusiquePin);
-    //             //On marque une courte pose (entre chaque note, pour les différencer)
-    //             delay(50);
-    //             //On passe à la note suivante
-    //             ++i;
-    //         }
-    //         else
-    //         {
-    //             i = 0;
-    //         }
-
-    //         break;
-    //     default:
-    //         break;
-    // }
 
     if (countButtonPressed == true)
-    {        
-
-
+    {   
         const char* name = doc["name"]; 
         int note = doc["notes"][i]["note"];  
         int tempo = doc["notes"][i]["tempo"];      
@@ -235,21 +160,12 @@ void loop() {
         Serial.print("note : ");
         Serial.println(note);
         Serial.print("tempo : ");
-        Serial.println(tempo);
-        
-
-        // ##################  Music String to int #####################
-        // int note_int = atoi(note.c_str()); 
-        // Serial.print("note_int : ");
-        // Serial.println(note_int);
-        // Serial.print("Random music : ");
-        // Serial.println(num_music);
+        Serial.println(tempo);        
 
         //music = rand() % 3 + 1;
 
-        if (tempo != -1)
+        if (note != 0)
         {
-
             //On joue la note
             tone(MusiquePin, note, tempo);
             //On attend X millisecondes (durée de la note) avant de passer à la suivante
@@ -265,10 +181,6 @@ void loop() {
         {
             i = 0;
         }
-
-        //countButtonPressed = false; 
-
-
     }
 
 }
