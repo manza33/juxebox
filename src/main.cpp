@@ -1,6 +1,8 @@
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
 #include <ArduinoJson.h>
+#include <ESP8266HTTPClient.h>
+
 
 #include "led.h"
 #include "music.h"
@@ -27,9 +29,11 @@ bool bButtonPressedEvent = false;
 bool bButtonPressedDown = false;
 bool bButtonPressedUp = false;
 bool countButtonPressed = false;
+bool isStopMusic = true;
 
 int i = 0;
 int MusiquePin = 14;
+unsigned long startTime = 0;
 
 // Checks if motion was detected, sets LED HIGH and starts a timer
 ICACHE_RAM_ATTR void buttonPressed() {
@@ -87,54 +91,62 @@ void loop() {
     if (bButtonPressedEvent) {
         
         if (bButtonPressedDown) {
-            
+            startTime = millis();
             Serial.println("APPUI COURT!!!");
             bButtonPressedDown = false;
             countButtonPressed = true; 
 
             // ################## Connexion a la page  ################## 
 
-            if (client.connect(host, 80)) {  //starts client connection, checks for connection
-                Serial.println("connected");
-                client.println("GET /juxebox_server/ HTTP/1.1"); //download text
-                client.println("Host: www.manza3d.com");
-                client.println("Connection: close");  //close 1.1 persistent connection 
-                client.println(); //end of get request
-            }
-            else{
-                Serial.println("connection failed");
-            }
+            // if (client.connect(host, 80)) {  //starts client connection, checks for connection
+            //     Serial.println("connected");
+            //     client.println("GET /juxebox_server/ HTTP/1.1"); //download text
+            //     client.println("Host: www.manza3d.com");
+            //     client.println("Connection: close");  //close 1.1 persistent connection 
+            //     client.println(); //end of get request
+            // }
+            // else{
+            //     Serial.println("connection failed");
+            // }
 
-            // Read all the lines of the reply from server and print them to Serial
-            Serial.println("receiving from remote server");
-            // not testing 'client.connected()' since we do not need to send data here
+            // // Read all the lines of the reply from server and print them to Serial
+            // Serial.println("receiving from remote server");
+            // // not testing 'client.connected()' since we do not need to send data here
 
-            String json = "";
-            boolean httpBody = false;
-            while (client.connected()) {
-                String line = client.readStringUntil('\r');
-                if (!httpBody && line.charAt(1) == '{') {
-                    httpBody = true;
-                }
-                if (httpBody) {
-                    json += line;
-                }
-            }
-            //StaticJsonBuffer<400> jsonBuffer;
-            Serial.println("Got data:");
-            Serial.println(json);
+            // String json = "";
+            // boolean httpBody = false;
+            // while (client.connected()) {
+            //     String line = client.readStringUntil('\r');
+            //     if (!httpBody && line.charAt(1) == '{') {
+            //         httpBody = true;
+            //     }
+            //     if (httpBody) {
+            //         json += line;
+            //     }
+            // }
 
+            HTTPClient http;    //Declare object of class HTTPClient            
             
-            // Close the connexion
-            Serial.println();
-            Serial.println("closing connection");
-            client.stop();  
+            //GET Data
+            String Link = "http://www.manza3d.com/juxebox_server/";
+            
+            http.begin(Link);     //Specify request destination
+            
+            int httpCode = http.GET();            //Send the request
+            String payload = http.getString();    //Get the response payload
+            
+            Serial.println("Got data:");
+            Serial.println(httpCode);   //Print HTTP return code
+            Serial.println(payload);    //Print request response payload
+            
+            http.end();  //Close connection           
+            
 
             //  ################## Fin Connexion  ################## 
 
             // ### parse JSON ###
 
-            DeserializationError error = deserializeJson(doc, json);        
+            DeserializationError error = deserializeJson(doc, payload);        
 
             // Test if parsing succeeds.
             if (error) {
@@ -142,15 +154,37 @@ void loop() {
                 Serial.println(error.c_str());
                 return;
             }
-
             i = 0;
         }
 
+        if (bButtonPressedUp)
+        {
+            Serial.println("BUTTON RELEASED!!!");
+            bButtonPressedUp = false;
+            unsigned long elapseTime = millis() - startTime;
+            Serial.print("ELAPSE TIME : ");
+            Serial.print(elapseTime);
+            Serial.println("ms");
+
+            if (elapseTime > 2000)
+            {
+                Serial.println("APPUI LONG!!!");
+                isStopMusic = true;
+            }
+            else
+            {
+                Serial.println("APPUI COURT!!!");
+                isStopMusic = false;            
+            }
+            Serial.print("isStopMusic : ");
+            Serial.println(isStopMusic);
+
+        }
         bButtonPressedEvent = false;     
     }
 
-
-    if (countButtonPressed == true)
+// && isStopMusic == false
+    if (countButtonPressed == true && isStopMusic == false)
     {   
         const char* name = doc["name"]; 
         int note = doc["notes"][i]["note"];  
@@ -164,7 +198,7 @@ void loop() {
 
         //music = rand() % 3 + 1;
 
-        if (note != 0)
+        if (note != -1)
         {
             //On joue la note
             tone(MusiquePin, note, tempo);
@@ -182,7 +216,6 @@ void loop() {
             i = 0;
         }
     }
-
 }
 
 
