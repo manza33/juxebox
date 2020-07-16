@@ -3,11 +3,14 @@
 #include <ArduinoJson.h>
 #include <ESP8266HTTPClient.h>
 #include <Buzzer.h>
-
+#include <Wire.h>
+#include <LiquidCrystal_PCF8574.h>
 
 #include "led.h"
 #include "music.h"
-//using namespace std;
+
+LiquidCrystal_PCF8574 lcd(0x27);
+int show = -1;
 
 #ifndef STASSID
 #define STASSID "FatPanda"
@@ -21,14 +24,15 @@ const char* password = STAPSK;
 
 //Const connexion a la page
 WiFiClient client;
-DynamicJsonDocument doc(1024);
+DynamicJsonDocument doc(10000);
 
-const int buttonInput = 5;  // D1
+const int buttonInput = 12;  // D1
 bool bButtonPressedEvent = false;
 bool bButtonPressedDown = false;
 bool bButtonPressedUp = false;
 bool countButtonPressed = false;
 bool isStopMusic = true;
+const char* name = "";
 
 int i = 0;
 int MusiquePin = 14;
@@ -48,8 +52,30 @@ ICACHE_RAM_ATTR void buttonPressed() {
 
 void setup() {
 
+    int error;
+    // We start by connecting to a WiFi network
+    // Mettre GPIO (General Purpose Input Output) en OUTPUT (Sortie) : LED
+    Serial.begin(115200);    
 
-  // We start by connecting to a WiFi network
+    Serial.println("Dose: check for LCD");
+
+    // See http://playground.arduino.cc/Main/I2cScanner how to test for a I2C device.
+    Wire.begin();
+    Wire.beginTransmission(0x27);
+    error = Wire.endTransmission();
+    Serial.print("Error: ");
+    Serial.print(error);
+
+    if (error == 0)
+    {
+        Serial.println(": LCD found.");
+        show = 0;
+        lcd.begin(16, 2); // initialize the lcd
+    }
+    else
+    {
+        Serial.println(": LCD not found.");
+    } // if
 
     Serial.println();
     Serial.print("Connecting to ");
@@ -75,8 +101,7 @@ void setup() {
     pinMode(buttonInput, INPUT);
     attachInterrupt(digitalPinToInterrupt(buttonInput), buttonPressed, CHANGE);
 
-    // Mettre GPIO (General Purpose Input Output) en OUTPUT (Sortie) : LED
-    Serial.begin(115200);    
+    
 }
 
 unsigned long lastMsg = 0;
@@ -163,7 +188,7 @@ void loop() {
 // && isStopMusic == false
     if (countButtonPressed == true && isStopMusic == false)
     {   
-        const char* name = doc["name"]; 
+        name = doc["name"]; 
         int note = doc["notes"][i]["note"];  
         int tempo = doc["notes"][i]["tempo"];      
         Serial.print("name : ");
@@ -178,24 +203,99 @@ void loop() {
         if (note != -1)
         {
             buzzer.sound(note, tempo);
-            //On joue la note
-            //tone(MusiquePin, note, tempo);
-            //On attend X millisecondes (durée de la note) avant de passer à la suivante
-            //delay(tempo);
-            //On arrête la lecture de la note
-            //noTone(MusiquePin);
-            //On marque une courte pose (entre chaque note, pour les différencer)
-            //delay(50);
-            //On passe à la note suivante
             ++i;
         }
-        else
+        else if(note == -1)
         {
+            Serial.println("Fin");   
+            i = 0;  
             buzzer.end(100);
-            i = 0;
         }
 
+        Serial.print("i : ");  
+        Serial.println(i);       
+
     }
+
+    if (show == 0)
+    {
+        lcd.setBacklight(255);
+        lcd.home();
+        lcd.clear();
+        lcd.print(name);
+        /* delay(1000); */
+
+        lcd.setBacklight(0);
+        /* delay(400); */
+        lcd.setBacklight(255);
+    }
+    else if (show == 1)
+    {
+        lcd.clear();
+        lcd.print(name);
+        lcd.cursor();
+    }
+    else if (show == 2)
+    {
+        lcd.clear();
+        lcd.print(name);
+        lcd.blink();
+    }
+    else if (show == 3)
+    {
+        lcd.clear();
+        lcd.print(name);
+        lcd.noBlink();
+        lcd.noCursor();
+    }
+    else if (show == 4)
+    {
+        lcd.clear();
+        lcd.print(name);
+        lcd.noDisplay();
+    }
+    else if (show == 5)
+    {
+        lcd.clear();
+        lcd.print(name);
+        lcd.display();
+    }
+    else if (show == 7)
+    {
+        lcd.clear();
+        lcd.setCursor(0, 0);
+        lcd.print(name);
+        lcd.setCursor(0, 1);
+        lcd.print("");
+    }
+    else if (show == 8)
+    {
+        lcd.scrollDisplayLeft();
+    }
+    else if (show == 9)
+    {
+        lcd.scrollDisplayLeft();
+    }
+    else if (show == 10)
+    {
+        lcd.scrollDisplayLeft();
+    }
+    else if (show == 11)
+    {
+        lcd.scrollDisplayRight();
+    }
+    else if (show == 12)
+    {
+        lcd.clear();
+        lcd.print(name);
+    }
+    else if (show > 12)
+    {
+        lcd.print(show - 13);
+    } // if
+
+    /* delay(40); */
+    show = (show + 1) % 16;
 }
 
 

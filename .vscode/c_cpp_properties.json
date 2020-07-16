@@ -8,6 +8,8 @@
             "includePath": [
                 "c:/FORMATION_PRO/OBJETS_CONNECTES/JUXEBOX/include",
                 "c:/FORMATION_PRO/OBJETS_CONNECTES/JUXEBOX/src",
+                "C:/Users/laetitia.bourgois/.platformio/lib/LiquidCrystal_PCF8574/src",
+                "C:/Users/laetitia.bourgois/.platformio/packages/framework-arduinoespressif8266/libraries/Wire",
                 "C:/Users/laetitia.bourgois/.platformio/packages/framework-arduinoespressif8266/libraries/ESP8266HTTPClient/src",
                 "C:/Users/laetitia.bourgois/.platformio/packages/framework-arduinoespressif8266/libraries/ESP8266WiFi/src",
                 "C:/Users/laetitia.bourgois/.platformio/lib/Buzzer/src",
@@ -45,7 +47,6 @@
                 "C:/Users/laetitia.bourgois/.platformio/packages/framework-arduinoespressif8266/libraries/SoftwareSerial/src",
                 "C:/Users/laetitia.bourgois/.platformio/packages/framework-arduinoespressif8266/libraries/TFT_Touch_Shield_V2",
                 "C:/Users/laetitia.bourgois/.platformio/packages/framework-arduinoespressif8266/libraries/Ticker/src",
-                "C:/Users/laetitia.bourgois/.platformio/packages/framework-arduinoespressif8266/libraries/Wire",
                 "C:/Users/laetitia.bourgois/.platformio/packages/framework-arduinoespressif8266/libraries/esp8266/src",
                 "C:/Users/laetitia.bourgois/.platformio/packages/tool-unity",
                 ""
@@ -55,6 +56,8 @@
                 "path": [
                     "c:/FORMATION_PRO/OBJETS_CONNECTES/JUXEBOX/include",
                     "c:/FORMATION_PRO/OBJETS_CONNECTES/JUXEBOX/src",
+                    "C:/Users/laetitia.bourgois/.platformio/lib/LiquidCrystal_PCF8574/src",
+                    "C:/Users/laetitia.bourgois/.platformio/packages/framework-arduinoespressif8266/libraries/Wire",
                     "C:/Users/laetitia.bourgois/.platformio/packages/framework-arduinoespressif8266/libraries/ESP8266HTTPClient/src",
                     "C:/Users/laetitia.bourgois/.platformio/packages/framework-arduinoespressif8266/libraries/ESP8266WiFi/src",
                     "C:/Users/laetitia.bourgois/.platformio/lib/Buzzer/src",
@@ -92,7 +95,6 @@
                     "C:/Users/laetitia.bourgois/.platformio/packages/framework-arduinoespressif8266/libraries/SoftwareSerial/src",
                     "C:/Users/laetitia.bourgois/.platformio/packages/framework-arduinoespressif8266/libraries/TFT_Touch_Shield_V2",
                     "C:/Users/laetitia.bourgois/.platformio/packages/framework-arduinoespressif8266/libraries/Ticker/src",
-                    "C:/Users/laetitia.bourgois/.platformio/packages/framework-arduinoespressif8266/libraries/Wire",
                     "C:/Users/laetitia.bourgois/.platformio/packages/framework-arduinoespressif8266/libraries/esp8266/src",
                     "C:/Users/laetitia.bourgois/.platformio/packages/tool-unity",
                     ""
