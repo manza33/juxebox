@@ -2,6 +2,7 @@
 #include <ESP8266WiFi.h>
 #include <ArduinoJson.h>
 #include <ESP8266HTTPClient.h>
+#include <Buzzer.h>
 
 
 #include "led.h"
@@ -19,8 +20,6 @@ const char* ssid     = STASSID;
 const char* password = STAPSK;
 
 //Const connexion a la page
-const char* host = "www.manza3d.com";
-const uint16_t port = 80;
 WiFiClient client;
 DynamicJsonDocument doc(1024);
 
@@ -34,6 +33,8 @@ bool isStopMusic = true;
 int i = 0;
 int MusiquePin = 14;
 unsigned long startTime = 0;
+
+Buzzer buzzer(MusiquePin, 16);
 
 // Checks if motion was detected, sets LED HIGH and starts a timer
 ICACHE_RAM_ATTR void buttonPressed() {
@@ -98,39 +99,12 @@ void loop() {
 
             // ################## Connexion a la page  ################## 
 
-            // if (client.connect(host, 80)) {  //starts client connection, checks for connection
-            //     Serial.println("connected");
-            //     client.println("GET /juxebox_server/ HTTP/1.1"); //download text
-            //     client.println("Host: www.manza3d.com");
-            //     client.println("Connection: close");  //close 1.1 persistent connection 
-            //     client.println(); //end of get request
-            // }
-            // else{
-            //     Serial.println("connection failed");
-            // }
-
-            // // Read all the lines of the reply from server and print them to Serial
-            // Serial.println("receiving from remote server");
-            // // not testing 'client.connected()' since we do not need to send data here
-
-            // String json = "";
-            // boolean httpBody = false;
-            // while (client.connected()) {
-            //     String line = client.readStringUntil('\r');
-            //     if (!httpBody && line.charAt(1) == '{') {
-            //         httpBody = true;
-            //     }
-            //     if (httpBody) {
-            //         json += line;
-            //     }
-            // }
-
             HTTPClient http;    //Declare object of class HTTPClient            
             
             //GET Data
             String Link = "http://www.manza3d.com/juxebox_server/";
             
-            http.begin(Link);     //Specify request destination
+            http.begin(client, Link);     //Specify request destination
             
             int httpCode = http.GET();            //Send the request
             String payload = http.getString();    //Get the response payload
@@ -139,9 +113,8 @@ void loop() {
             Serial.println(httpCode);   //Print HTTP return code
             Serial.println(payload);    //Print request response payload
             
-            http.end();  //Close connection           
+            http.end();  //Close connection       
             
-
             //  ################## Fin Connexion  ################## 
 
             // ### parse JSON ###
@@ -183,6 +156,10 @@ void loop() {
         bButtonPressedEvent = false;     
     }
 
+    if(i == 0){
+        buzzer.begin(10);
+    }
+
 // && isStopMusic == false
     if (countButtonPressed == true && isStopMusic == false)
     {   
@@ -200,21 +177,24 @@ void loop() {
 
         if (note != -1)
         {
+            buzzer.sound(note, tempo);
             //On joue la note
-            tone(MusiquePin, note, tempo);
+            //tone(MusiquePin, note, tempo);
             //On attend X millisecondes (durée de la note) avant de passer à la suivante
-            delay(tempo);
+            //delay(tempo);
             //On arrête la lecture de la note
-            noTone(MusiquePin);
+            //noTone(MusiquePin);
             //On marque une courte pose (entre chaque note, pour les différencer)
-            delay(50);
+            //delay(50);
             //On passe à la note suivante
             ++i;
         }
         else
         {
+            buzzer.end(100);
             i = 0;
         }
+
     }
 }
 
