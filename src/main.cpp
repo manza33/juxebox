@@ -33,6 +33,7 @@ bool bButtonPressedUp = false;
 bool countButtonPressed = false;
 bool isStopMusic = true;
 const char* name = "";
+int pause = 10;
 
 int i = 0;
 int MusiquePin = 14;
@@ -99,9 +100,7 @@ void setup() {
 
     // Mettre GPIO (General Purpose Input Output) en INPUT (Entrée) : Bouton
     pinMode(buttonInput, INPUT);
-    attachInterrupt(digitalPinToInterrupt(buttonInput), buttonPressed, CHANGE);
-
-    
+    attachInterrupt(digitalPinToInterrupt(buttonInput), buttonPressed, CHANGE);    
 }
 
 unsigned long lastMsg = 0;
@@ -164,7 +163,7 @@ void loop() {
             Serial.print(elapseTime);
             Serial.println("ms");
 
-            if (elapseTime > 2000)
+            if (elapseTime > 1000)
             {
                 Serial.println("APPUI LONG!!!");
                 isStopMusic = true;
@@ -182,15 +181,15 @@ void loop() {
     }
 
     if(i == 0){
-        buzzer.begin(10);
+        pause = doc["pause"];  
+        buzzer.begin(pause);
     }
 
-// && isStopMusic == false
     if (countButtonPressed == true && isStopMusic == false)
     {   
         name = doc["name"]; 
         int note = doc["notes"][i]["note"];  
-        int tempo = doc["notes"][i]["tempo"];      
+        int tempo = doc["notes"][i]["tempo"];           
         Serial.print("name : ");
         Serial.println(name);
         Serial.print("note : ");
@@ -209,11 +208,8 @@ void loop() {
         {
             Serial.println("Fin");   
             i = 0;  
-            buzzer.end(100);
-        }
-
-        Serial.print("i : ");  
-        Serial.println(i);       
+            buzzer.end(500);
+        }      
 
     }
 
@@ -223,10 +219,8 @@ void loop() {
         lcd.home();
         lcd.clear();
         lcd.print(name);
-        /* delay(1000); */
 
         lcd.setBacklight(0);
-        /* delay(400); */
         lcd.setBacklight(255);
     }
     else if (show == 1)
@@ -292,9 +286,8 @@ void loop() {
     else if (show > 12)
     {
         lcd.print(show - 13);
-    } // if
+    } 
 
-    /* delay(40); */
     show = (show + 1) % 16;
 }
 
